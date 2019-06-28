@@ -1,6 +1,6 @@
 # Brancher
 
-A tool for making branches that track issues on GitHub
+A tool for making branches that track issues on GitHub. Requires [hub](https://github.com/github/hub)
 
 ## What it does
 
