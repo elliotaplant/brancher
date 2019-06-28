@@ -2,6 +2,11 @@
 
 A tool for making branches that track issues on GitHub
 
+## What it does
+
+Makes feature/bug branches and personal branches off of those features branches with a helpful dropdown menu
+
+
 ## Installation
 
 - Go to the [releases](https://github.com/elliotaplant/brancher/releases) page and download the binary for your OS
