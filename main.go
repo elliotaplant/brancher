@@ -81,21 +81,13 @@ func main() {
 
 	err = makeBranch(selectedBranch.mainBranch())
 	if err != nil {
-		if err.Error() == "exit status 128" {
-			fmt.Printf("Branch %s already exists\n", selectedBranch.mainBranch())
-		} else {
-			fmt.Printf("Error creating branch %s: %s\n", selectedBranch.mainBranch(), err)
-		}
+		fmt.Printf("Error creating branch %s: %s\nIt may already exist", selectedBranch.mainBranch(), err)
 		return
 	}
 
 	err = makeBranch(selectedBranch.personalBranch())
 	if err != nil {
-		if err.Error() == "exit status 128" {
-			fmt.Printf("Branch %s already exists\n", selectedBranch.personalBranch())
-		} else {
-			fmt.Printf("Error creating branch %s: %s\n", selectedBranch.personalBranch(), err)
-		}
+		fmt.Printf("Error creating branch %s: %s\nIt may already exist", selectedBranch.personalBranch(), err)
 		return
 	}
 }
