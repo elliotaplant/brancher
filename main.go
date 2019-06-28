@@ -3,33 +3,106 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"log"
+	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 )
 
+type Issue struct {
+	id   int64
+	name string
+}
+
+func (i Issue) String() string {
+	return fmt.Sprintf("#%d  %s", i.id, i.name)
+}
+
+func (i Issue) mainBranch() string {
+	titleCaseName := strings.Title(i.name)
+	joinedName := strings.Join(strings.Fields(titleCaseName), "")
+	return fmt.Sprintf("%s#%d", joinedName, i.id)
+}
+
+func (i Issue) personalBranch() string {
+	initials := os.Args[1]
+	return fmt.Sprintf("%s_%s", initials, i.mainBranch())
+}
+
 func main() {
-	cmd := exec.Command("ls", "-hl")
+	if len(os.Args) != 2 {
+		fmt.Println("Requires your initials (eg. 'eap') as the first and only argument")
+		return
+	}
+	cmd := exec.Command("hub", "issue")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+		fmt.Print(err)
+		return
 	}
-	fmt.Printf("out.String(): %s\n", out.String())
+	splitOutput := strings.Split(out.String(), "\n")
+	issues := []Issue{}
+
+	for _, line := range splitOutput {
+		if line != "" {
+			line := strings.TrimSpace(line)
+			idStart := 1
+			idEnd := idStart
+			for line[idEnd] != ' ' {
+				idEnd++
+			}
+			id, err := strconv.ParseInt(line[idStart:idEnd], 10, 64)
+			if err != nil {
+				panic(err)
+			}
+			issues = append(issues, Issue{
+				id:   id,
+				name: line[idEnd+2:],
+			})
+		}
+	}
 
 	prompt := promptui.Select{
-		Label: "Select Day",
-		Items: []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
-			"Saturday", "Sunday"},
+		Label: "Select Issue",
+		Items: issues,
 	}
 
-	_, result, err := prompt.Run()
+	i, _, err := prompt.Run()
 
 	if err != nil {
 		fmt.Printf("Prompt failed %v\n", err)
 		return
 	}
 
-	fmt.Printf("You choose %q\n", result)
+	selectedBranch := issues[i]
+
+	err = makeBranch(selectedBranch.mainBranch())
+	if err != nil {
+		if err.Error() == "exit status 128" {
+			fmt.Printf("Branch %s already exists\n", selectedBranch.mainBranch())
+		} else {
+			fmt.Printf("Error creating branch %s: %s\n", selectedBranch.mainBranch(), err)
+		}
+		return
+	}
+
+	err = makeBranch(selectedBranch.personalBranch())
+	if err != nil {
+		if err.Error() == "exit status 128" {
+			fmt.Printf("Branch %s already exists\n", selectedBranch.personalBranch())
+		} else {
+			fmt.Printf("Error creating branch %s: %s\n", selectedBranch.personalBranch(), err)
+		}
+		return
+	}
+}
+
+func makeBranch(branchName string) error {
+	cmd := exec.Command("git", "checkout", "-b", branchName)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	return cmd.Run()
 }
