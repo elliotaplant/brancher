@@ -6,6 +6,7 @@ A tool for making branches that track issues on GitHub
 
 Makes feature/bug branches and personal branches off of those features branches with a helpful dropdown menu
 
+![Demo](./demo.gif)
 
 ## Installation
 
