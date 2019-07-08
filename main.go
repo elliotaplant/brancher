@@ -49,18 +49,28 @@ func main() {
 	for _, line := range splitOutput {
 		if line != "" {
 			line := strings.TrimSpace(line)
-			idStart := 1
+			idStart := 0
+
+			for line[idStart] == '#' {
+				idStart++
+			}
 			idEnd := idStart
-			for line[idEnd] != ' ' {
+			for line[idEnd] != ' ' && line[idEnd] != ']' {
 				idEnd++
 			}
 			id, err := strconv.ParseInt(line[idStart:idEnd], 10, 64)
 			if err != nil {
 				panic(err)
 			}
+			nameStart := idEnd + 1
+			nameEnd := nameStart + 1
+			for line[nameEnd] != '(' {
+				nameEnd++
+			}
+			name := strings.TrimSpace(line[nameStart:nameEnd])
 			issues = append(issues, Issue{
 				id:   id,
-				name: line[idEnd+2:],
+				name: name,
 			})
 		}
 	}
